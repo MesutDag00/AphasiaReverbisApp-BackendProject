@@ -3,6 +3,8 @@ namespace AphaisaReverbes.Contracts;
 using AphaisaReverbes.Models;
 
 public sealed record RegisterPatientWithCodeRequest(
+    string Email,
+    string Password,
     string FirstName,
     string LastName,
     DateTimeOffset BirthDate,

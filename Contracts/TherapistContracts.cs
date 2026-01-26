@@ -4,6 +4,8 @@ using AphaisaReverbes.Models;
 
 public sealed record RegisterTherapistRequest(
     string Code,
+    string Email,
+    string Password,
     string FirstName,
     string LastName,
     DateTimeOffset GraduationDate,

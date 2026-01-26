@@ -7,6 +7,7 @@ internal static class ApiEndpoints
         // Root API group: keep common prefix in one place.
         var api = app.MapGroup("/api");
 
+        api.MapAuthEndpoints();
         api.MapTherapistEndpoints();
         api.MapTherapistInvitationEndpoints();
         api.MapPatientEndpoints();

@@ -22,10 +22,13 @@ public sealed class AppDbContext : DbContext
             b.HasKey(x => x.Id);
             b.Property(x => x.FirstName).HasMaxLength(100).IsRequired();
             b.Property(x => x.LastName).HasMaxLength(100).IsRequired();
+            b.Property(x => x.Email).HasMaxLength(320).IsRequired();
+            b.Property(x => x.PasswordHash).HasMaxLength(200).IsRequired();
             b.Property(x => x.GraduationDate).IsRequired();
             b.Property(x => x.BirthDate).IsRequired();
             b.Property(x => x.Location).HasMaxLength(200).IsRequired();
             b.Property(x => x.CreatedAtUtc).IsRequired();
+            b.HasIndex(x => x.Email).IsUnique();
             b.HasIndex(x => new { x.LastName, x.FirstName });
         });
 
@@ -34,6 +37,8 @@ public sealed class AppDbContext : DbContext
             b.HasKey(x => x.Id);
             b.Property(x => x.FirstName).HasMaxLength(100).IsRequired();
             b.Property(x => x.LastName).HasMaxLength(100).IsRequired();
+            b.Property(x => x.Email).HasMaxLength(320).IsRequired();
+            b.Property(x => x.PasswordHash).HasMaxLength(200).IsRequired();
             b.Property(x => x.BirthDate).IsRequired();
             b.Property(x => x.Location).HasMaxLength(200).IsRequired();
             b.Property(x => x.AphasiaType)
@@ -51,6 +56,7 @@ public sealed class AppDbContext : DbContext
                 .HasForeignKey(x => x.TherapistId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            b.HasIndex(x => x.Email).IsUnique();
             b.HasIndex(x => new { x.LastName, x.FirstName });
             b.HasIndex(x => new { x.TargetTherapistId, x.TransferStatus });
         });

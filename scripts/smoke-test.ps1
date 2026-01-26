@@ -20,7 +20,9 @@ if (-not $invObj.success) { throw 'CreateTherapistInvitation expected success=tr
 if ($null -eq $invObj.data -or [string]::IsNullOrWhiteSpace($invObj.data.code)) { throw 'CreateTherapistInvitation did not return data.code' }
 $code = $invObj.data.code
 
-$therJson = '{ "code": "' + $code.ToLower() + '", "firstName": "Ayse", "lastName": "Yilmaz", "graduationDate": "2015-06-15T00:00:00Z", "birthDate": "1990-02-10T00:00:00Z", "location": "Istanbul" }'
+$therEmail = 'ayse.yilmaz@example.com'
+$therPassword = 'Test123!Pass'
+$therJson = '{ "code": "' + $code.ToLower() + '", "email": "' + $therEmail + '", "password": "' + $therPassword + '", "firstName": "Ayse", "lastName": "Yilmaz", "graduationDate": "2015-06-15T00:00:00Z", "birthDate": "1990-02-10T00:00:00Z", "location": "Istanbul" }'
 $therResp = Invoke-Json 'Post' ($base + '/api/therapists/register') $therJson
 if ([int]$therResp.StatusCode -ne 201) { throw "RegisterTherapist expected 201, got $($therResp.StatusCode)" }
 $therWrap = $therResp.Content | ConvertFrom-Json
@@ -38,7 +40,9 @@ if ($null -eq $codeObj -or [string]::IsNullOrWhiteSpace($codeObj.code)) { throw 
 $code = $codeObj.code
 if ($codeObj.aphasiaType -ne 'Broca') { throw "Expected Broca aphasiaType, got $($codeObj.aphasiaType)" }
 
-$patResp = Invoke-Json 'Post' ($base + '/api/patients/register-with-code') ('{ "firstName": "Mehmet", "lastName": "Demir", "birthDate": "1985-01-20T00:00:00Z", "location": "Ankara", "code": "' + $code + '" }')
+$patEmail = 'mehmet.demir@example.com'
+$patPassword = 'Test123!Pass'
+$patResp = Invoke-Json 'Post' ($base + '/api/patients/register-with-code') ('{ "email": "' + $patEmail + '", "password": "' + $patPassword + '", "firstName": "Mehmet", "lastName": "Demir", "birthDate": "1985-01-20T00:00:00Z", "location": "Ankara", "code": "' + $code + '" }')
 if ([int]$patResp.StatusCode -ne 201) { throw "RegisterWithCode expected 201, got $($patResp.StatusCode)" }
 $patWrap = $patResp.Content | ConvertFrom-Json
 if (-not $patWrap.success) { throw 'RegisterWithCode expected success=true' }
@@ -50,7 +54,7 @@ if ($patObj.aphasiaType -ne 'Broca') { throw "Expected Broca aphasiaType on pati
 # reuse should be 400 (hard delete)
 $reuseStatus = $null
 try {
-  Invoke-Json 'Post' ($base + '/api/patients/register-with-code') ('{ "firstName": "Veli", "lastName": "Kaya", "birthDate": "1992-11-03T00:00:00Z", "location": "Izmir", "code": "' + $code + '" }') | Out-Null
+  Invoke-Json 'Post' ($base + '/api/patients/register-with-code') ('{ "email": "veli.kaya@example.com", "password": "Test123!Pass", "firstName": "Veli", "lastName": "Kaya", "birthDate": "1992-11-03T00:00:00Z", "location": "Izmir", "code": "' + $code + '" }') | Out-Null
   $reuseStatus = 201
 } catch {
   $reuseStatus = Get-ErrorStatus $_
@@ -66,6 +70,11 @@ foreach ($p in $detail.patients) {
   if ($p.id -eq $patientId) { $found = $true }
 }
 if (-not $found) { throw 'Patient not found in therapist detail' }
+
+# login smoke
+$loginWrap = Invoke-RestMethod -Method Post -Uri ($base + '/api/auth/login') -ContentType 'application/json' -Body ('{ "email": "' + $therEmail + '", "password": "' + $therPassword + '" }')
+if (-not $loginWrap.success) { throw 'Login expected success=true' }
+if ($null -eq $loginWrap.data -or [string]::IsNullOrWhiteSpace($loginWrap.data.token)) { throw 'Login did not return token' }
 
 Write-Output 'SMOKE TEST PASSED'
 

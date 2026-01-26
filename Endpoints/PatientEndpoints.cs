@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using AphaisaReverbes.Contracts;
 using AphaisaReverbes.Data;
 using AphaisaReverbes.Models;
@@ -15,7 +16,15 @@ internal static class PatientEndpoints
         group.MapPost("/register-with-code", RegisterWithCode);
         group.MapGet("/", ListPatients);
         group.MapGet("/{patientId:guid}", GetPatient);
-        group.MapPut("/{patientId:guid}/change-therapist", ChangeTherapist);
+        group.MapPut("/{patientId:guid}/change-therapist", ChangeTherapist)
+            .RequireAuthorization("PatientOnly");
+        group.MapPut("/change-therapist", ChangeTherapistSelf)
+            .RequireAuthorization("PatientOnly");
+
+        group.MapPost("/activities", CreateActivity)
+            .RequireAuthorization("PatientOnly");
+        group.MapGet("/activities", ListMyActivities)
+            .RequireAuthorization("PatientOnly");
         return group;
     }
 
@@ -27,12 +36,22 @@ internal static class PatientEndpoints
         if (code is null)
             return EndpointSupport.BadRequest("Geçersiz kod.");
 
-        if (!EndpointSupport.TryTrimRequired(request.FirstName, 100, "firstName", out var firstName, out var err))
+        if (!EndpointSupport.TryTrimRequired(request.Email, 320, "email", out var email, out var err))
+            return err!;
+        if (!EndpointSupport.TryTrimRequired(request.Password, 200, "password", out var password, out err))
+            return err!;
+        if (!EndpointSupport.TryTrimRequired(request.FirstName, 100, "firstName", out var firstName, out err))
             return err!;
         if (!EndpointSupport.TryTrimRequired(request.LastName, 100, "lastName", out var lastName, out err))
             return err!;
         if (!EndpointSupport.TryTrimRequired(request.Location, 200, "location", out var location, out err))
             return err!;
+
+        email = email.ToLowerInvariant();
+        var emailTaken = await db.Therapists.AsNoTracking().AnyAsync(t => t.Email == email, ct)
+            || await db.Patients.AsNoTracking().AnyAsync(p => p.Email == email, ct);
+        if (emailTaken)
+            return EndpointSupport.BadRequest("email zaten kullanımda.");
 
         var nowUtc = DateTimeOffset.UtcNow;
         err = EndpointSupport.ValidateBirthDate(birthDate, nowUtc);
@@ -63,6 +82,8 @@ WHERE ""Id"" = {invite.Id};
         var patient = new Patient
         {
             Id = Guid.NewGuid(),
+            Email = email,
+            PasswordHash = PasswordService.Hash(password),
             FirstName = firstName,
             LastName = lastName,
             BirthDate = birthDate,
@@ -106,8 +127,12 @@ WHERE ""Id"" = {invite.Id};
         return EndpointSupport.Ok(EndpointSupport.ToResponse(patient));
     }
 
-    private static async Task<IResult> ChangeTherapist(Guid patientId, ChangeTherapistRequest request, AppDbContext db, CancellationToken ct)
+    private static async Task<IResult> ChangeTherapist(Guid patientId, ChangeTherapistRequest request, ClaimsPrincipal user, AppDbContext db, CancellationToken ct)
     {
+        var userIdRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdRaw, out var userId) || userId != patientId)
+            return Results.Forbid();
+
         if (request.NewTherapistId == Guid.Empty)
             return EndpointSupport.BadRequest("newTherapistId geçersiz.");
 
@@ -132,6 +157,76 @@ WHERE ""Id"" = {invite.Id};
         await db.SaveChangesAsync(ct);
 
         return EndpointSupport.Ok(EndpointSupport.ToResponse(patient));
+    }
+
+    private static Task<IResult> ChangeTherapistSelf(ChangeTherapistRequest request, ClaimsPrincipal user, AppDbContext db, CancellationToken ct)
+    {
+        var userIdRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdRaw, out var userId))
+            return Task.FromResult<IResult>(Results.Forbid());
+
+        return ChangeTherapist(userId, request, user, db, ct);
+    }
+
+    private static async Task<IResult> CreateActivity(CreatePatientActivityRequest request, ClaimsPrincipal user, AppDbContext db, CancellationToken ct)
+    {
+        var userIdRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdRaw, out var patientId))
+            return Results.Forbid();
+
+        if (!EndpointSupport.TryTrimRequired(request.ActivityName, 200, "activityName", out var activityName, out var err))
+            return err!;
+        if (request.Duration < 0)
+            return EndpointSupport.BadRequest("duration geçersiz.");
+
+        var exists = await db.Patients.AsNoTracking().AnyAsync(p => p.Id == patientId, ct);
+        if (!exists)
+            return EndpointSupport.NotFound("patient bulunamadı.");
+
+        var now = DateTimeOffset.UtcNow;
+        var entity = new PatientActivity
+        {
+            Id = Guid.NewGuid(),
+            PatientId = patientId,
+            ActivityName = activityName,
+            Score = request.Score,
+            Duration = request.Duration,
+            CreatedAt = now
+        };
+
+        db.PatientActivities.Add(entity);
+        await db.SaveChangesAsync(ct);
+
+        var response = new PatientActivityResponse(
+            entity.Id,
+            entity.PatientId,
+            entity.ActivityName,
+            entity.Score,
+            entity.Duration,
+            entity.CreatedAt
+        );
+
+        return EndpointSupport.Created($"/api/patients/activities/{entity.Id}", response);
+    }
+
+    private static async Task<IResult> ListMyActivities(ClaimsPrincipal user, AppDbContext db, CancellationToken ct)
+    {
+        var userIdRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdRaw, out var patientId))
+            return Results.Forbid();
+
+        // NOTE: SQLite doesn't support ordering by DateTimeOffset; order in-memory.
+        var activities = await db.PatientActivities
+            .AsNoTracking()
+            .Where(x => x.PatientId == patientId)
+            .ToListAsync(ct);
+
+        var response = activities
+            .OrderByDescending(x => x.CreatedAt)
+            .Select(x => new PatientActivityResponse(x.Id, x.PatientId, x.ActivityName, x.Score, x.Duration, x.CreatedAt))
+            .ToList();
+
+        return EndpointSupport.Ok(response);
     }
 }
 

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using AphaisaReverbes.Contracts;
 using AphaisaReverbes.Data;
 using AphaisaReverbes.Models;
@@ -18,8 +19,15 @@ internal static class TherapistEndpoints
         group.MapGet("/{therapistId:guid}", GetTherapist);
 
         group.MapPost("/{therapistId:guid}/generate-code", GeneratePatientInvitationCode);
-        group.MapGet("/{therapistId:guid}/pending-transfers", GetPendingTransfers);
-        group.MapPut("/{therapistId:guid}/approve-transfer/{patientId:guid}", ApproveTransfer);
+        group.MapGet("/{therapistId:guid}/pending-transfers", GetPendingTransfers)
+            .RequireAuthorization("TherapistOnly");
+        group.MapPut("/{therapistId:guid}/approve-transfer/{patientId:guid}", ApproveTransfer)
+            .RequireAuthorization("TherapistOnly");
+
+        group.MapGet("/pending-transfers", GetPendingTransfersSelf)
+            .RequireAuthorization("TherapistOnly");
+        group.MapPut("/approve-transfer/{patientId:guid}", ApproveTransferSelf)
+            .RequireAuthorization("TherapistOnly");
 
         return group;
     }
@@ -59,12 +67,22 @@ internal static class TherapistEndpoints
         if (code is null)
             return EndpointSupport.BadRequest("Geçersiz kod.");
 
-        if (!EndpointSupport.TryTrimRequired(request.FirstName, 100, "firstName", out var firstName, out var err))
+        if (!EndpointSupport.TryTrimRequired(request.Email, 320, "email", out var email, out var err))
+            return err!;
+        if (!EndpointSupport.TryTrimRequired(request.Password, 200, "password", out var password, out err))
+            return err!;
+        if (!EndpointSupport.TryTrimRequired(request.FirstName, 100, "firstName", out var firstName, out err))
             return err!;
         if (!EndpointSupport.TryTrimRequired(request.LastName, 100, "lastName", out var lastName, out err))
             return err!;
         if (!EndpointSupport.TryTrimRequired(request.Location, 200, "location", out var location, out err))
             return err!;
+
+        email = email.ToLowerInvariant();
+        var emailTaken = await db.Therapists.AsNoTracking().AnyAsync(t => t.Email == email, ct)
+            || await db.Patients.AsNoTracking().AnyAsync(p => p.Email == email, ct);
+        if (emailTaken)
+            return EndpointSupport.BadRequest("email zaten kullanımda.");
 
         var graduationDate = request.GraduationDate;
         var birthDate = request.BirthDate;
@@ -93,6 +111,8 @@ internal static class TherapistEndpoints
         var therapist = new Therapist
         {
             Id = Guid.NewGuid(),
+            Email = email,
+            PasswordHash = PasswordService.Hash(password),
             FirstName = firstName,
             LastName = lastName,
             GraduationDate = graduationDate,
@@ -161,8 +181,12 @@ WHERE ""Code"" = {code};
         return EndpointSupport.Fail(StatusCodes.Status500InternalServerError, "Davet kodu üretilemedi. Lütfen tekrar deneyin.");
     }
 
-    private static async Task<IResult> GetPendingTransfers(Guid therapistId, AppDbContext db, CancellationToken ct)
+    private static async Task<IResult> GetPendingTransfers(Guid therapistId, ClaimsPrincipal user, AppDbContext db, CancellationToken ct)
     {
+        var userIdRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdRaw, out var userId) || userId != therapistId)
+            return Results.Forbid();
+
         var therapistExists = await db.Therapists
             .AsNoTracking()
             .AnyAsync(t => t.Id == therapistId, ct);
@@ -184,8 +208,12 @@ WHERE ""Code"" = {code};
         return EndpointSupport.Ok(response);
     }
 
-    private static async Task<IResult> ApproveTransfer(Guid therapistId, Guid patientId, AppDbContext db, CancellationToken ct)
+    private static async Task<IResult> ApproveTransfer(Guid therapistId, Guid patientId, ClaimsPrincipal user, AppDbContext db, CancellationToken ct)
     {
+        var userIdRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdRaw, out var userId) || userId != therapistId)
+            return Results.Forbid();
+
         var therapistExists = await db.Therapists
             .AsNoTracking()
             .AnyAsync(t => t.Id == therapistId, ct);
@@ -208,6 +236,24 @@ WHERE ""Code"" = {code};
         await db.SaveChangesAsync(ct);
 
         return EndpointSupport.Ok(EndpointSupport.ToResponse(patient));
+    }
+
+    private static Task<IResult> GetPendingTransfersSelf(ClaimsPrincipal user, AppDbContext db, CancellationToken ct)
+    {
+        var userIdRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdRaw, out var therapistId))
+            return Task.FromResult<IResult>(Results.Forbid());
+
+        return GetPendingTransfers(therapistId, user, db, ct);
+    }
+
+    private static Task<IResult> ApproveTransferSelf(Guid patientId, ClaimsPrincipal user, AppDbContext db, CancellationToken ct)
+    {
+        var userIdRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdRaw, out var therapistId))
+            return Task.FromResult<IResult>(Results.Forbid());
+
+        return ApproveTransfer(therapistId, patientId, user, db, ct);
     }
 }
 
