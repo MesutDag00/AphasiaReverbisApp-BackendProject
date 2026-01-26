@@ -87,6 +87,9 @@ using (var scope = app.Services.CreateScope())
             hasAphasiaTypeColumnPatients = patientCols.Any(c => string.Equals(c, "AphasiaType", StringComparison.OrdinalIgnoreCase));
             hasAphasiaTypeColumnInvites = inviteCols.Any(c => string.Equals(c, "AphasiaType", StringComparison.OrdinalIgnoreCase));
 
+            var hasTransferStatusColumnPatients = patientCols.Any(c => string.Equals(c, "TransferStatus", StringComparison.OrdinalIgnoreCase));
+            var hasTargetTherapistIdColumnPatients = patientCols.Any(c => string.Equals(c, "TargetTherapistId", StringComparison.OrdinalIgnoreCase));
+
             hasTherapistProfileColumns =
                 therapistCols.Any(c => string.Equals(c, "FirstName", StringComparison.OrdinalIgnoreCase)) &&
                 therapistCols.Any(c => string.Equals(c, "LastName", StringComparison.OrdinalIgnoreCase)) &&
@@ -98,7 +101,9 @@ using (var scope = app.Services.CreateScope())
                 patientCols.Any(c => string.Equals(c, "FirstName", StringComparison.OrdinalIgnoreCase)) &&
                 patientCols.Any(c => string.Equals(c, "LastName", StringComparison.OrdinalIgnoreCase)) &&
                 patientCols.Any(c => string.Equals(c, "BirthDate", StringComparison.OrdinalIgnoreCase)) &&
-                patientCols.Any(c => string.Equals(c, "Location", StringComparison.OrdinalIgnoreCase));
+                patientCols.Any(c => string.Equals(c, "Location", StringComparison.OrdinalIgnoreCase)) &&
+                hasTransferStatusColumnPatients &&
+                hasTargetTherapistIdColumnPatients;
 
             // ensure therapist invitations use Code (not legacy Token)
             if (!therapistInviteCols.Any(c => string.Equals(c, "Code", StringComparison.OrdinalIgnoreCase)))

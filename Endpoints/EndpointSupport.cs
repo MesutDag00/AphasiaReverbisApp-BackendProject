@@ -59,7 +59,18 @@ internal static class EndpointSupport
         new(t.Id, t.FirstName, t.LastName, t.GraduationDate, t.BirthDate, t.Location, t.CreatedAtUtc);
 
     public static PatientResponse ToResponse(Patient p) =>
-        new(p.Id, p.FirstName, p.LastName, p.BirthDate, p.Location, p.AphasiaType, p.TherapistId, p.CreatedAtUtc);
+        new(
+            p.Id,
+            p.FirstName,
+            p.LastName,
+            p.BirthDate,
+            p.Location,
+            p.AphasiaType,
+            p.TherapistId,
+            p.TransferStatus,
+            p.TargetTherapistId,
+            p.CreatedAtUtc
+        );
 
     public static PatientSummaryResponse ToSummary(Patient p) =>
         new(p.Id, p.FirstName, p.LastName, p.BirthDate, p.Location, p.AphasiaType, p.CreatedAtUtc);

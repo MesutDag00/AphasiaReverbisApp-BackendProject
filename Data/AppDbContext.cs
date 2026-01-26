@@ -40,6 +40,10 @@ public sealed class AppDbContext : DbContext
                 .HasConversion<string>()
                 .HasMaxLength(64)
                 .IsRequired();
+            b.Property(x => x.TransferStatus)
+                .HasConversion<string>()
+                .HasMaxLength(16)
+                .IsRequired();
             b.Property(x => x.CreatedAtUtc).IsRequired();
 
             b.HasOne(x => x.Therapist)
@@ -48,6 +52,7 @@ public sealed class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
 
             b.HasIndex(x => new { x.LastName, x.FirstName });
+            b.HasIndex(x => new { x.TargetTherapistId, x.TransferStatus });
         });
 
         modelBuilder.Entity<PatientActivity>(b =>

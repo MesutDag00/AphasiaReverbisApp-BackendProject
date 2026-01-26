@@ -18,6 +18,8 @@ internal static class TherapistEndpoints
         group.MapGet("/{therapistId:guid}", GetTherapist);
 
         group.MapPost("/{therapistId:guid}/generate-code", GeneratePatientInvitationCode);
+        group.MapGet("/{therapistId:guid}/pending-transfers", GetPendingTransfers);
+        group.MapPut("/{therapistId:guid}/approve-transfer/{patientId:guid}", ApproveTransfer);
 
         return group;
     }
@@ -157,6 +159,55 @@ WHERE ""Code"" = {code};
         }
 
         return EndpointSupport.Fail(StatusCodes.Status500InternalServerError, "Davet kodu üretilemedi. Lütfen tekrar deneyin.");
+    }
+
+    private static async Task<IResult> GetPendingTransfers(Guid therapistId, AppDbContext db, CancellationToken ct)
+    {
+        var therapistExists = await db.Therapists
+            .AsNoTracking()
+            .AnyAsync(t => t.Id == therapistId, ct);
+
+        if (!therapistExists)
+            return EndpointSupport.NotFound("therapist bulunamadı.");
+
+        // Patients who requested transfer to this therapist
+        var patients = await db.Patients
+            .AsNoTracking()
+            .Where(p => p.TransferStatus == TransferStatus.Pending && p.TargetTherapistId == therapistId)
+            .ToListAsync(ct);
+
+        var response = patients
+            .OrderByDescending(p => p.CreatedAtUtc)
+            .Select(EndpointSupport.ToResponse)
+            .ToList();
+
+        return EndpointSupport.Ok(response);
+    }
+
+    private static async Task<IResult> ApproveTransfer(Guid therapistId, Guid patientId, AppDbContext db, CancellationToken ct)
+    {
+        var therapistExists = await db.Therapists
+            .AsNoTracking()
+            .AnyAsync(t => t.Id == therapistId, ct);
+
+        if (!therapistExists)
+            return EndpointSupport.NotFound("therapist bulunamadı.");
+
+        var patient = await db.Patients
+            .SingleOrDefaultAsync(p => p.Id == patientId, ct);
+
+        if (patient is null)
+            return EndpointSupport.NotFound("patient bulunamadı.");
+
+        if (patient.TransferStatus != TransferStatus.Pending || patient.TargetTherapistId != therapistId)
+            return EndpointSupport.BadRequest("bekleyen transfer talebi bulunamadı.");
+
+        patient.TherapistId = therapistId;
+        patient.TargetTherapistId = null;
+        patient.TransferStatus = TransferStatus.Approved;
+        await db.SaveChangesAsync(ct);
+
+        return EndpointSupport.Ok(EndpointSupport.ToResponse(patient));
     }
 }
 

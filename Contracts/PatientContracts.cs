@@ -20,6 +20,8 @@ public sealed record PatientResponse(
     string Location,
     AphasiaType AphasiaType,
     Guid? TherapistId,
+    TransferStatus TransferStatus,
+    Guid? TargetTherapistId,
     DateTimeOffset CreatedAtUtc
 );
 

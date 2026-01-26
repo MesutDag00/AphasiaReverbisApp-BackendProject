@@ -124,7 +124,11 @@ WHERE ""Id"" = {invite.Id};
         if (patient is null)
             return EndpointSupport.NotFound("patient bulunamadı.");
 
-        patient.TherapistId = request.NewTherapistId;
+        if (patient.TherapistId == request.NewTherapistId)
+            return EndpointSupport.BadRequest("patient zaten bu therapist'e bağlı.");
+
+        patient.TargetTherapistId = request.NewTherapistId;
+        patient.TransferStatus = TransferStatus.Pending;
         await db.SaveChangesAsync(ct);
 
         return EndpointSupport.Ok(EndpointSupport.ToResponse(patient));
