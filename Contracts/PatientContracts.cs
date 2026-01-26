@@ -10,6 +10,8 @@ public sealed record RegisterPatientWithCodeRequest(
     string Code
 );
 
+public sealed record ChangeTherapistRequest(Guid NewTherapistId);
+
 public sealed record PatientResponse(
     Guid Id,
     string FirstName,

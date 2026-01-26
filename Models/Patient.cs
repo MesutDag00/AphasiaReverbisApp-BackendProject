@@ -15,6 +15,8 @@ public sealed class Patient
     public Guid? TherapistId { get; set; }
     public Therapist? Therapist { get; set; }
 
+    public ICollection<PatientActivity> Activities { get; set; } = new List<PatientActivity>();
+
     public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
 }
 

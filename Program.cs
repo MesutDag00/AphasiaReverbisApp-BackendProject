@@ -52,6 +52,11 @@ using (var scope = app.Services.CreateScope())
             .AsEnumerable()
             .FirstOrDefault() > 0;
 
+        var hasPatientActivities = db.Database
+            .SqlQueryRaw<int>("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='PatientActivities';")
+            .AsEnumerable()
+            .FirstOrDefault() > 0;
+
         var hasAphasiaTypeColumnPatients = false;
         var hasAphasiaTypeColumnInvites = false;
         var hasTherapistProfileColumns = false;
@@ -102,6 +107,7 @@ using (var scope = app.Services.CreateScope())
 
         if (!hasTherapistInvitations ||
             !hasPatientInvitations ||
+            !hasPatientActivities ||
             !hasAphasiaTypeColumnPatients ||
             !hasAphasiaTypeColumnInvites ||
             !hasTherapistProfileColumns ||

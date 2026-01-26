@@ -9,6 +9,7 @@ public sealed class AppDbContext : DbContext
 
     public DbSet<Therapist> Therapists => Set<Therapist>();
     public DbSet<Patient> Patients => Set<Patient>();
+    public DbSet<PatientActivity> PatientActivities => Set<PatientActivity>();
     public DbSet<TherapistInvitation> TherapistInvitations => Set<TherapistInvitation>();
     public DbSet<PatientInvitation> PatientInvitations => Set<PatientInvitation>();
 
@@ -47,6 +48,23 @@ public sealed class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
 
             b.HasIndex(x => new { x.LastName, x.FirstName });
+        });
+
+        modelBuilder.Entity<PatientActivity>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.ActivityName).HasMaxLength(200).IsRequired();
+            b.Property(x => x.Score).IsRequired();
+            b.Property(x => x.Duration).IsRequired();
+            b.Property(x => x.CreatedAt).IsRequired();
+
+            b.HasOne(x => x.Patient)
+                .WithMany(p => p.Activities)
+                .HasForeignKey(x => x.PatientId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(x => x.PatientId);
+            b.HasIndex(x => x.CreatedAt);
         });
 
         modelBuilder.Entity<TherapistInvitation>(b =>

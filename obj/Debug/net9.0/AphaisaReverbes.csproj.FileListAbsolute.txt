@@ -70,3 +70,4 @@ d:\BackendProject\AphasiaReverse-Backend.net\AphaisaReverbes\obj\Debug\net9.0\re
 d:\BackendProject\AphasiaReverse-Backend.net\AphaisaReverbes\obj\Debug\net9.0\AphaisaReverbes.pdb
 d:\BackendProject\AphasiaReverse-Backend.net\AphaisaReverbes\obj\Debug\net9.0\AphaisaReverbes.genruntimeconfig.cache
 d:\BackendProject\AphasiaReverse-Backend.net\AphaisaReverbes\obj\Debug\net9.0\ref\AphaisaReverbes.dll
+D:\BackendProject\AphasiaReverse-Backend.net\AphaisaReverbes\obj\Debug\net9.0\AphaisaReverbes.sourcelink.json

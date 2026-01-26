@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "d:\\BackendProject\\AphasiaReverse-Backend.net\\AphaisaReverbes\\AphaisaReverbes.csproj": {}
+    "D:\\BackendProject\\AphasiaReverse-Backend.net\\AphaisaReverbes\\AphaisaReverbes.csproj": {}
   },
   "projects": {
-    "d:\\BackendProject\\AphasiaReverse-Backend.net\\AphaisaReverbes\\AphaisaReverbes.csproj": {
+    "D:\\BackendProject\\AphasiaReverse-Backend.net\\AphaisaReverbes\\AphaisaReverbes.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "d:\\BackendProject\\AphasiaReverse-Backend.net\\AphaisaReverbes\\AphaisaReverbes.csproj",
+        "projectUniqueName": "D:\\BackendProject\\AphasiaReverse-Backend.net\\AphaisaReverbes\\AphaisaReverbes.csproj",
         "projectName": "AphaisaReverbes",
-        "projectPath": "d:\\BackendProject\\AphasiaReverse-Backend.net\\AphaisaReverbes\\AphaisaReverbes.csproj",
+        "projectPath": "D:\\BackendProject\\AphasiaReverse-Backend.net\\AphaisaReverbes\\AphaisaReverbes.csproj",
         "packagesPath": "C:\\Users\\mst\\.nuget\\packages\\",
-        "outputPath": "d:\\BackendProject\\AphasiaReverse-Backend.net\\AphaisaReverbes\\obj\\",
+        "outputPath": "D:\\BackendProject\\AphasiaReverse-Backend.net\\AphaisaReverbes\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

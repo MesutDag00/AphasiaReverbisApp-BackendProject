@@ -15,6 +15,7 @@ internal static class PatientEndpoints
         group.MapPost("/register-with-code", RegisterWithCode);
         group.MapGet("/", ListPatients);
         group.MapGet("/{patientId:guid}", GetPatient);
+        group.MapPut("/{patientId:guid}/change-therapist", ChangeTherapist);
         return group;
     }
 
@@ -101,6 +102,30 @@ WHERE ""Id"" = {invite.Id};
 
         if (patient is null)
             return EndpointSupport.NotFound("patient bulunamadı.");
+
+        return EndpointSupport.Ok(EndpointSupport.ToResponse(patient));
+    }
+
+    private static async Task<IResult> ChangeTherapist(Guid patientId, ChangeTherapistRequest request, AppDbContext db, CancellationToken ct)
+    {
+        if (request.NewTherapistId == Guid.Empty)
+            return EndpointSupport.BadRequest("newTherapistId geçersiz.");
+
+        var newTherapistExists = await db.Therapists
+            .AsNoTracking()
+            .AnyAsync(t => t.Id == request.NewTherapistId, ct);
+
+        if (!newTherapistExists)
+            return EndpointSupport.NotFound("therapist bulunamadı.");
+
+        var patient = await db.Patients
+            .SingleOrDefaultAsync(p => p.Id == patientId, ct);
+
+        if (patient is null)
+            return EndpointSupport.NotFound("patient bulunamadı.");
+
+        patient.TherapistId = request.NewTherapistId;
+        await db.SaveChangesAsync(ct);
 
         return EndpointSupport.Ok(EndpointSupport.ToResponse(patient));
     }
