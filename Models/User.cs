@@ -7,7 +7,7 @@ public abstract class User
 
     public string? PhoneNumber { get; set; }
 
-    public int? CityId { get; set; }
-    public City? City { get; set; }
+    public int CityId { get; set; }
+    public City City { get; set; } = null!;
 }
 

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AphaisaReverbes")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a4c5aa5a0b23c62a4e5857445e0fc99ea5f66905")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1c4a467e5b5f0149c8cd43664deaa6a3f531f9df")]
 [assembly: System.Reflection.AssemblyProductAttribute("AphaisaReverbes")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AphaisaReverbes")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

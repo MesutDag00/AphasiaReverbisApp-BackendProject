@@ -2,7 +2,7 @@ namespace AphaisaReverbes.Contracts;
 
 using AphaisaReverbes.Models;
 
-public sealed record RegisterPatientWithCodeRequest(
+public sealed record PatientRegisterDto(
     string Email,
     string Password,
     string FirstName,
@@ -23,7 +23,8 @@ public sealed record PatientResponse(
     DateTimeOffset BirthDate,
     Gender Gender,
     string? PhoneNumber,
-    int? CityId,
+    int CityId,
+    string CityName,
     AphasiaType AphasiaType,
     Guid? TherapistId,
     TransferStatus TransferStatus,

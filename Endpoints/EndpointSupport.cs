@@ -40,14 +40,14 @@ internal static class EndpointSupport
 
     public static IResult? ValidateBirthDate(DateTimeOffset birthDate, DateTimeOffset nowUtc)
     {
-        if (birthDate < MinDateUtc || birthDate > nowUtc)
+        if (birthDate < MinDateUtc || birthDate.UtcDateTime.Date > nowUtc.UtcDateTime.Date)
             return BadRequest("birthDate geçersiz.");
         return null;
     }
 
     public static IResult? ValidateGraduationDate(DateTimeOffset graduationDate, DateTimeOffset birthDate, DateTimeOffset nowUtc)
     {
-        if (graduationDate < MinDateUtc || graduationDate > nowUtc)
+        if (graduationDate < MinDateUtc || graduationDate.UtcDateTime.Date > nowUtc.UtcDateTime.Date)
             return BadRequest("graduationDate geçersiz.");
         if (graduationDate <= birthDate)
             return BadRequest("graduationDate geçersiz.");
@@ -65,6 +65,7 @@ internal static class EndpointSupport
             t.Gender,
             t.PhoneNumber,
             t.CityId,
+            t.City?.Name ?? string.Empty,
             t.CreatedAtUtc
         );
 
@@ -77,6 +78,7 @@ internal static class EndpointSupport
             p.Gender,
             p.PhoneNumber,
             p.CityId,
+            p.City?.Name ?? string.Empty,
             p.AphasiaType,
             p.TherapistId,
             p.TransferStatus,
@@ -85,7 +87,18 @@ internal static class EndpointSupport
         );
 
     public static PatientSummaryResponse ToSummary(Patient p) =>
-        new(p.Id, p.FirstName, p.LastName, p.BirthDate, p.Gender, p.PhoneNumber, p.CityId, p.AphasiaType, p.CreatedAtUtc);
+        new(
+            p.Id,
+            p.FirstName,
+            p.LastName,
+            p.BirthDate,
+            p.Gender,
+            p.PhoneNumber,
+            p.CityId,
+            p.City?.Name ?? string.Empty,
+            p.AphasiaType,
+            p.CreatedAtUtc
+        );
 
     public static TherapistWithPatientsResponse ToWithPatientsResponse(Therapist t) =>
         new(
@@ -97,6 +110,7 @@ internal static class EndpointSupport
             t.Gender,
             t.PhoneNumber,
             t.CityId,
+            t.City?.Name ?? string.Empty,
             t.CreatedAtUtc,
             t.Patients
                 .OrderByDescending(p => p.CreatedAtUtc)

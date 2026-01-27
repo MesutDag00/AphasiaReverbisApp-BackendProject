@@ -37,7 +37,9 @@ internal static class TherapistEndpoints
         // NOTE: SQLite doesn't support ordering by DateTimeOffset; order in-memory.
         var therapists = await db.Therapists
             .AsNoTracking()
+            .Include(t => t.City)
             .Include(t => t.Patients)
+            .ThenInclude(p => p.City)
             .ToListAsync(ct);
 
         var response = therapists
@@ -52,7 +54,9 @@ internal static class TherapistEndpoints
     {
         var therapist = await db.Therapists
             .AsNoTracking()
+            .Include(t => t.City)
             .Include(t => t.Patients)
+            .ThenInclude(p => p.City)
             .SingleOrDefaultAsync(t => t.Id == therapistId, ct);
 
         if (therapist is null)
@@ -61,7 +65,7 @@ internal static class TherapistEndpoints
         return EndpointSupport.Ok(EndpointSupport.ToWithPatientsResponse(therapist));
     }
 
-    private static async Task<IResult> RegisterTherapist(RegisterTherapistRequest request, AppDbContext db, CancellationToken ct)
+    private static async Task<IResult> RegisterTherapist(TherapistRegisterDto request, AppDbContext db, CancellationToken ct)
     {
         var code = InvitationCodeGenerator.Normalize(request.Code);
         if (code is null)
@@ -85,6 +89,10 @@ internal static class TherapistEndpoints
             return EndpointSupport.BadRequest("gender geçersiz.");
 
         if (request.CityId <= 0)
+            return EndpointSupport.BadRequest("cityId geçersiz.");
+
+        var cityExists = await db.Cities.AsNoTracking().AnyAsync(c => c.Id == request.CityId, ct);
+        if (!cityExists)
             return EndpointSupport.BadRequest("cityId geçersiz.");
 
         email = email.ToLowerInvariant();
@@ -147,7 +155,12 @@ WHERE ""Code"" = {code};
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
 
-        return EndpointSupport.Created($"/api/therapists/{therapist.Id}", EndpointSupport.ToResponse(therapist));
+        var created = await db.Therapists
+            .AsNoTracking()
+            .Include(t => t.City)
+            .SingleAsync(t => t.Id == therapist.Id, ct);
+
+        return EndpointSupport.Created($"/api/therapists/{created.Id}", EndpointSupport.ToResponse(created));
     }
 
     private static async Task<IResult> GeneratePatientInvitationCode(Guid therapistId, GeneratePatientInvitationRequest? request, AppDbContext db, CancellationToken ct)

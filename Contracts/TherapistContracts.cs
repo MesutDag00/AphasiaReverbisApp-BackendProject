@@ -2,7 +2,7 @@ namespace AphaisaReverbes.Contracts;
 
 using AphaisaReverbes.Models;
 
-public sealed record RegisterTherapistRequest(
+public sealed record TherapistRegisterDto(
     string Code,
     string Email,
     string Password,
@@ -23,7 +23,8 @@ public sealed record TherapistResponse(
     DateTimeOffset BirthDate,
     Gender Gender,
     string? PhoneNumber,
-    int? CityId,
+    int CityId,
+    string CityName,
     DateTimeOffset CreatedAtUtc
 );
 
@@ -34,7 +35,8 @@ public sealed record PatientSummaryResponse(
     DateTimeOffset BirthDate,
     Gender Gender,
     string? PhoneNumber,
-    int? CityId,
+    int CityId,
+    string CityName,
     AphasiaType AphasiaType,
     DateTimeOffset CreatedAtUtc
 );
@@ -47,7 +49,8 @@ public sealed record TherapistWithPatientsResponse(
     DateTimeOffset BirthDate,
     Gender Gender,
     string? PhoneNumber,
-    int? CityId,
+    int CityId,
+    string CityName,
     DateTimeOffset CreatedAtUtc,
     IReadOnlyList<PatientSummaryResponse> Patients
 );

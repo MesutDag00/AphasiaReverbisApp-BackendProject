@@ -28,7 +28,7 @@ internal static class PatientEndpoints
         return group;
     }
 
-    private static async Task<IResult> RegisterWithCode(RegisterPatientWithCodeRequest request, AppDbContext db, CancellationToken ct)
+    private static async Task<IResult> RegisterWithCode(PatientRegisterDto request, AppDbContext db, CancellationToken ct)
     {
         var birthDate = request.BirthDate;
         var code = InvitationCodeGenerator.Normalize(request.Code);
@@ -54,6 +54,10 @@ internal static class PatientEndpoints
             return EndpointSupport.BadRequest("gender geçersiz.");
 
         if (request.CityId <= 0)
+            return EndpointSupport.BadRequest("cityId geçersiz.");
+
+        var cityExists = await db.Cities.AsNoTracking().AnyAsync(c => c.Id == request.CityId, ct);
+        if (!cityExists)
             return EndpointSupport.BadRequest("cityId geçersiz.");
 
         email = email.ToLowerInvariant();
@@ -108,7 +112,12 @@ WHERE ""Id"" = {invite.Id};
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
 
-        return EndpointSupport.Created($"/api/patients/{patient.Id}", EndpointSupport.ToResponse(patient));
+        var created = await db.Patients
+            .AsNoTracking()
+            .Include(p => p.City)
+            .SingleAsync(p => p.Id == patient.Id, ct);
+
+        return EndpointSupport.Created($"/api/patients/{created.Id}", EndpointSupport.ToResponse(created));
     }
 
     private static async Task<IResult> ListPatients(AppDbContext db, CancellationToken ct)
@@ -116,6 +125,7 @@ WHERE ""Id"" = {invite.Id};
         // NOTE: SQLite doesn't support ordering by DateTimeOffset; order in-memory.
         var patients = await db.Patients
             .AsNoTracking()
+            .Include(p => p.City)
             .ToListAsync(ct);
 
         var response = patients
@@ -130,6 +140,7 @@ WHERE ""Id"" = {invite.Id};
     {
         var patient = await db.Patients
             .AsNoTracking()
+            .Include(p => p.City)
             .SingleOrDefaultAsync(x => x.Id == patientId, ct);
 
         if (patient is null)
