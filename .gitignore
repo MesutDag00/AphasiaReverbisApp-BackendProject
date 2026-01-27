@@ -1,0 +1,21 @@
+# Build outputs
+bin/
+obj/
+
+# SQLite database files
+app.db
+app.db-wal
+app.db-shm
+*.db-wal
+*.db-shm
+*.db
+
+# Local backups
+app.db.bak-*
+
+# IDE
+.idea/
+
+# Local buildcheck output
+buildcheck/
+
