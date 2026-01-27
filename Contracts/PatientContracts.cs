@@ -8,7 +8,9 @@ public sealed record RegisterPatientWithCodeRequest(
     string FirstName,
     string LastName,
     DateTimeOffset BirthDate,
-    string Location,
+    Gender Gender,
+    string? PhoneNumber,
+    int CityId,
     string Code
 );
 
@@ -19,7 +21,9 @@ public sealed record PatientResponse(
     string FirstName,
     string LastName,
     DateTimeOffset BirthDate,
-    string Location,
+    Gender Gender,
+    string? PhoneNumber,
+    int? CityId,
     AphasiaType AphasiaType,
     Guid? TherapistId,
     TransferStatus TransferStatus,

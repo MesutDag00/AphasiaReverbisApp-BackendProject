@@ -1,6 +1,6 @@
 namespace AphaisaReverbes.Models;
 
-public sealed class Patient
+public sealed class Patient : User
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string FirstName { get; set; } = string.Empty;
@@ -10,7 +10,6 @@ public sealed class Patient
     public string PasswordHash { get; set; } = string.Empty;
 
     public DateTimeOffset BirthDate { get; set; }
-    public string Location { get; set; } = string.Empty;
 
     public AphasiaType AphasiaType { get; set; } = AphasiaType.Unknown;
 

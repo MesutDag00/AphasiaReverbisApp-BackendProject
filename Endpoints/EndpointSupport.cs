@@ -56,7 +56,17 @@ internal static class EndpointSupport
 
     // ---------- DTO Mapping ----------
     public static TherapistResponse ToResponse(Therapist t) =>
-        new(t.Id, t.FirstName, t.LastName, t.GraduationDate, t.BirthDate, t.Location, t.CreatedAtUtc);
+        new(
+            t.Id,
+            t.FirstName,
+            t.LastName,
+            t.GraduationDate,
+            t.BirthDate,
+            t.Gender,
+            t.PhoneNumber,
+            t.CityId,
+            t.CreatedAtUtc
+        );
 
     public static PatientResponse ToResponse(Patient p) =>
         new(
@@ -64,7 +74,9 @@ internal static class EndpointSupport
             p.FirstName,
             p.LastName,
             p.BirthDate,
-            p.Location,
+            p.Gender,
+            p.PhoneNumber,
+            p.CityId,
             p.AphasiaType,
             p.TherapistId,
             p.TransferStatus,
@@ -73,7 +85,7 @@ internal static class EndpointSupport
         );
 
     public static PatientSummaryResponse ToSummary(Patient p) =>
-        new(p.Id, p.FirstName, p.LastName, p.BirthDate, p.Location, p.AphasiaType, p.CreatedAtUtc);
+        new(p.Id, p.FirstName, p.LastName, p.BirthDate, p.Gender, p.PhoneNumber, p.CityId, p.AphasiaType, p.CreatedAtUtc);
 
     public static TherapistWithPatientsResponse ToWithPatientsResponse(Therapist t) =>
         new(
@@ -82,7 +94,9 @@ internal static class EndpointSupport
             t.LastName,
             t.GraduationDate,
             t.BirthDate,
-            t.Location,
+            t.Gender,
+            t.PhoneNumber,
+            t.CityId,
             t.CreatedAtUtc,
             t.Patients
                 .OrderByDescending(p => p.CreatedAtUtc)

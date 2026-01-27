@@ -1,6 +1,6 @@
 namespace AphaisaReverbes.Models;
 
-public sealed class Therapist
+public sealed class Therapist : User
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string FirstName { get; set; } = string.Empty;
@@ -11,8 +11,6 @@ public sealed class Therapist
 
     public DateTimeOffset GraduationDate { get; set; }
     public DateTimeOffset BirthDate { get; set; }
-
-    public string Location { get; set; } = string.Empty;
 
     public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
 

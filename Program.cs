@@ -156,7 +156,9 @@ using (var scope = app.Services.CreateScope())
                 therapistCols.Any(c => string.Equals(c, "PasswordHash", StringComparison.OrdinalIgnoreCase)) &&
                 therapistCols.Any(c => string.Equals(c, "GraduationDate", StringComparison.OrdinalIgnoreCase)) &&
                 therapistCols.Any(c => string.Equals(c, "BirthDate", StringComparison.OrdinalIgnoreCase)) &&
-                therapistCols.Any(c => string.Equals(c, "Location", StringComparison.OrdinalIgnoreCase));
+                therapistCols.Any(c => string.Equals(c, "Gender", StringComparison.OrdinalIgnoreCase)) &&
+                therapistCols.Any(c => string.Equals(c, "PhoneNumber", StringComparison.OrdinalIgnoreCase)) &&
+                therapistCols.Any(c => string.Equals(c, "CityId", StringComparison.OrdinalIgnoreCase));
 
             hasPatientProfileColumns =
                 patientCols.Any(c => string.Equals(c, "FirstName", StringComparison.OrdinalIgnoreCase)) &&
@@ -164,7 +166,9 @@ using (var scope = app.Services.CreateScope())
                 patientCols.Any(c => string.Equals(c, "Email", StringComparison.OrdinalIgnoreCase)) &&
                 patientCols.Any(c => string.Equals(c, "PasswordHash", StringComparison.OrdinalIgnoreCase)) &&
                 patientCols.Any(c => string.Equals(c, "BirthDate", StringComparison.OrdinalIgnoreCase)) &&
-                patientCols.Any(c => string.Equals(c, "Location", StringComparison.OrdinalIgnoreCase)) &&
+                patientCols.Any(c => string.Equals(c, "Gender", StringComparison.OrdinalIgnoreCase)) &&
+                patientCols.Any(c => string.Equals(c, "PhoneNumber", StringComparison.OrdinalIgnoreCase)) &&
+                patientCols.Any(c => string.Equals(c, "CityId", StringComparison.OrdinalIgnoreCase)) &&
                 hasTransferStatusColumnPatients &&
                 hasTargetTherapistIdColumnPatients;
 

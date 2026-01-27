@@ -75,8 +75,17 @@ internal static class TherapistEndpoints
             return err!;
         if (!EndpointSupport.TryTrimRequired(request.LastName, 100, "lastName", out var lastName, out err))
             return err!;
-        if (!EndpointSupport.TryTrimRequired(request.Location, 200, "location", out var location, out err))
-            return err!;
+        var phoneNumber = (request.PhoneNumber ?? string.Empty).Trim();
+        if (phoneNumber.Length > 32)
+            return EndpointSupport.BadRequest("phoneNumber en fazla 32 karakter olmalı.");
+        if (phoneNumber.Length == 0)
+            phoneNumber = null;
+
+        if (!Enum.IsDefined(typeof(Gender), request.Gender))
+            return EndpointSupport.BadRequest("gender geçersiz.");
+
+        if (request.CityId <= 0)
+            return EndpointSupport.BadRequest("cityId geçersiz.");
 
         email = email.ToLowerInvariant();
         var emailTaken = await db.Therapists.AsNoTracking().AnyAsync(t => t.Email == email, ct)
@@ -117,7 +126,9 @@ internal static class TherapistEndpoints
             LastName = lastName,
             GraduationDate = graduationDate,
             BirthDate = birthDate,
-            Location = location,
+            Gender = request.Gender,
+            PhoneNumber = phoneNumber,
+            CityId = request.CityId,
             CreatedAtUtc = now
         };
 

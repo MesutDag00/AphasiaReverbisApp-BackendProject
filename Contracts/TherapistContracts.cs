@@ -10,7 +10,9 @@ public sealed record RegisterTherapistRequest(
     string LastName,
     DateTimeOffset GraduationDate,
     DateTimeOffset BirthDate,
-    string Location
+    Gender Gender,
+    string? PhoneNumber,
+    int CityId
 );
 
 public sealed record TherapistResponse(
@@ -19,7 +21,9 @@ public sealed record TherapistResponse(
     string LastName,
     DateTimeOffset GraduationDate,
     DateTimeOffset BirthDate,
-    string Location,
+    Gender Gender,
+    string? PhoneNumber,
+    int? CityId,
     DateTimeOffset CreatedAtUtc
 );
 
@@ -28,7 +32,9 @@ public sealed record PatientSummaryResponse(
     string FirstName,
     string LastName,
     DateTimeOffset BirthDate,
-    string Location,
+    Gender Gender,
+    string? PhoneNumber,
+    int? CityId,
     AphasiaType AphasiaType,
     DateTimeOffset CreatedAtUtc
 );
@@ -39,7 +45,9 @@ public sealed record TherapistWithPatientsResponse(
     string LastName,
     DateTimeOffset GraduationDate,
     DateTimeOffset BirthDate,
-    string Location,
+    Gender Gender,
+    string? PhoneNumber,
+    int? CityId,
     DateTimeOffset CreatedAtUtc,
     IReadOnlyList<PatientSummaryResponse> Patients
 );
