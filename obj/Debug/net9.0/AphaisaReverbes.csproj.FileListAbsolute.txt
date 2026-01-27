@@ -139,3 +139,7 @@ D:\BackendProject\AphasiaReverse-Backend.net\AphaisaReverbes\buildcheck\runtimes
 D:\BackendProject\AphasiaReverse-Backend.net\AphaisaReverbes\buildcheck\runtimes\win-arm64\native\e_sqlite3.dll
 D:\BackendProject\AphasiaReverse-Backend.net\AphaisaReverbes\buildcheck\runtimes\win-x64\native\e_sqlite3.dll
 D:\BackendProject\AphasiaReverse-Backend.net\AphaisaReverbes\buildcheck\runtimes\win-x86\native\e_sqlite3.dll
+D:\BackendProject\AphasiaReverse-Backend.net\AphaisaReverbes\bin\Debug\net9.0\buildcheck\AphaisaReverbes.deps.json
+D:\BackendProject\AphasiaReverse-Backend.net\AphaisaReverbes\bin\Debug\net9.0\buildcheck\AphaisaReverbes.runtimeconfig.json
+D:\BackendProject\AphasiaReverse-Backend.net\AphaisaReverbes\bin\Debug\net9.0\buildcheck\AphaisaReverbes.staticwebassets.endpoints.json
+D:\BackendProject\AphasiaReverse-Backend.net\AphaisaReverbes\bin\Debug\net9.0\buildcheck\appsettings.json
