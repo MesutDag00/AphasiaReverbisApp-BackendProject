@@ -17,19 +17,38 @@ internal static class TherapistEndpoints
         group.MapPost("/register", RegisterTherapist);
         group.MapGet("/", ListTherapists);
         group.MapGet("/{therapistId:guid}", GetTherapist);
+        group.MapGet("/{therapistId:guid}/patients", ListMyPatients)
+            .RequireAuthorization("TherapistOnly");
 
         group.MapPost("/{therapistId:guid}/generate-code", GeneratePatientInvitationCode);
         group.MapGet("/{therapistId:guid}/pending-transfers", GetPendingTransfers)
-            .RequireAuthorization("TherapistOnly");
+            .RequireAuthorization("TherapistOnly")
+            .ExcludeFromDescription();
         group.MapPut("/{therapistId:guid}/approve-transfer/{patientId:guid}", ApproveTransfer)
-            .RequireAuthorization("TherapistOnly");
+            .RequireAuthorization("TherapistOnly")
+            .ExcludeFromDescription();
 
         group.MapGet("/pending-transfers", GetPendingTransfersSelf)
-            .RequireAuthorization("TherapistOnly");
+            .RequireAuthorization("TherapistOnly")
+            .ExcludeFromDescription();
         group.MapPut("/approve-transfer/{patientId:guid}", ApproveTransferSelf)
-            .RequireAuthorization("TherapistOnly");
+            .RequireAuthorization("TherapistOnly")
+            .ExcludeFromDescription();
 
         return group;
+    }
+
+    private static async Task<IResult> ListMyPatients(Guid therapistId, ClaimsPrincipal user, TherapistService therapistService, CancellationToken ct)
+    {
+        var userIdRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdRaw, out var userId) || userId != therapistId)
+            return Results.Forbid();
+
+        var patients = await therapistService.GetPatientsByTherapistId(therapistId, ct);
+        if (patients is null)
+            return EndpointSupport.NotFound("therapist bulunamadı.");
+
+        return EndpointSupport.Ok(patients);
     }
 
     private static async Task<IResult> ListTherapists(AppDbContext db, CancellationToken ct)
@@ -44,25 +63,32 @@ internal static class TherapistEndpoints
 
         var response = therapists
             .OrderByDescending(t => t.CreatedAtUtc)
-            .Select(EndpointSupport.ToWithPatientsResponse)
+            .Select(t => EndpointSupport.ToWithPatientsResponse(t, includeActivities: false))
             .ToList();
 
         return EndpointSupport.Ok(response);
     }
 
-    private static async Task<IResult> GetTherapist(Guid therapistId, AppDbContext db, CancellationToken ct)
+    private static async Task<IResult> GetTherapist(Guid therapistId, ClaimsPrincipal user, AppDbContext db, CancellationToken ct)
     {
+        var canSeeActivities = false;
+        var userIdRaw = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (user.IsInRole("Therapist") && Guid.TryParse(userIdRaw, out var userId) && userId == therapistId)
+            canSeeActivities = true;
+
         var therapist = await db.Therapists
             .AsNoTracking()
             .Include(t => t.City)
             .Include(t => t.Patients)
             .ThenInclude(p => p.City)
+            .Include(t => t.Patients)
+            .ThenInclude(p => p.Activities)
             .SingleOrDefaultAsync(t => t.Id == therapistId, ct);
 
         if (therapist is null)
             return EndpointSupport.NotFound("therapist bulunamadı.");
 
-        return EndpointSupport.Ok(EndpointSupport.ToWithPatientsResponse(therapist));
+        return EndpointSupport.Ok(EndpointSupport.ToWithPatientsResponse(therapist, includeActivities: canSeeActivities));
     }
 
     private static async Task<IResult> RegisterTherapist(TherapistRegisterDto request, AppDbContext db, CancellationToken ct)
@@ -109,6 +135,9 @@ internal static class TherapistEndpoints
 
         err = EndpointSupport.ValidateBirthDate(birthDate, nowUtc);
         if (err is not null) return err;
+
+        if (!RegistrationRules.IsAdult(birthDate, nowUtc))
+            return EndpointSupport.BadRequest(RegistrationRules.MustBeAdultMessage);
 
         err = EndpointSupport.ValidateGraduationDate(graduationDate, birthDate, nowUtc);
         if (err is not null) return err;

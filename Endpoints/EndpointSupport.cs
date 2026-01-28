@@ -86,7 +86,7 @@ internal static class EndpointSupport
             p.CreatedAtUtc
         );
 
-    public static PatientSummaryResponse ToSummary(Patient p) =>
+    public static PatientSummaryResponse ToSummary(Patient p, bool includeActivities) =>
         new(
             p.Id,
             p.FirstName,
@@ -97,10 +97,16 @@ internal static class EndpointSupport
             p.CityId,
             p.City?.Name ?? string.Empty,
             p.AphasiaType,
-            p.CreatedAtUtc
+            p.CreatedAtUtc,
+            includeActivities
+                ? p.Activities
+                    .OrderByDescending(a => a.CreatedAt)
+                    .Select(a => new PatientActivityResponse(a.Id, a.PatientId, a.ActivityName, a.Score, a.Duration, a.CreatedAt))
+                    .ToList()
+                : Array.Empty<PatientActivityResponse>()
         );
 
-    public static TherapistWithPatientsResponse ToWithPatientsResponse(Therapist t) =>
+    public static TherapistWithPatientsResponse ToWithPatientsResponse(Therapist t, bool includeActivities) =>
         new(
             t.Id,
             t.FirstName,
@@ -114,7 +120,7 @@ internal static class EndpointSupport
             t.CreatedAtUtc,
             t.Patients
                 .OrderByDescending(p => p.CreatedAtUtc)
-                .Select(ToSummary)
+                .Select(p => ToSummary(p, includeActivities))
                 .ToList()
         );
 }

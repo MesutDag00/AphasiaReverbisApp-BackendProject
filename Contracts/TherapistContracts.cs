@@ -38,7 +38,8 @@ public sealed record PatientSummaryResponse(
     int CityId,
     string CityName,
     AphasiaType AphasiaType,
-    DateTimeOffset CreatedAtUtc
+    DateTimeOffset CreatedAtUtc,
+    IReadOnlyList<PatientActivityResponse> Activities
 );
 
 public sealed record TherapistWithPatientsResponse(

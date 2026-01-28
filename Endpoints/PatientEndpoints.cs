@@ -17,9 +17,12 @@ internal static class PatientEndpoints
         group.MapGet("/", ListPatients);
         group.MapGet("/{patientId:guid}", GetPatient);
         group.MapPut("/{patientId:guid}/change-therapist", ChangeTherapist)
-            .RequireAuthorization("PatientOnly");
+
+            .RequireAuthorization("PatientOnly")
+            .ExcludeFromDescription();
         group.MapPut("/change-therapist", ChangeTherapistSelf)
-            .RequireAuthorization("PatientOnly");
+            .RequireAuthorization("PatientOnly")
+            .ExcludeFromDescription();
 
         group.MapPost("/activities", CreateActivity)
             .RequireAuthorization("PatientOnly");

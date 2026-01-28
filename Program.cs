@@ -93,6 +93,8 @@ builder.Services.Configure<InvitationCleanupOptions>(
     builder.Configuration.GetSection(InvitationCleanupOptions.SectionName)
 );
 
+builder.Services.AddScoped<TherapistService>();
+
 builder.Services.AddHostedService<InvitationCleanupService>();
 
 var app = builder.Build();
